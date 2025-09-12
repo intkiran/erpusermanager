@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import * as actions from "./../../store/actions/index";
 
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import UserForm from "../../components/User/UserForm";
 
 class UserContainer extends Component {
@@ -13,7 +13,7 @@ class UserContainer extends Component {
 
   render() {
     if (this.props.saved) {
-      return <Redirect to="/" />;
+      return <Navigate to="/" />;
     }
 
     return (

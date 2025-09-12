@@ -28,9 +28,9 @@ if (isDev || isTest) {
   routes.use("/seeds", SeedRoutes);
 } */
 
-routes.all("*", (req, res, next) =>
-  next(new APIError("Not Found!", HTTPStatus.NOT_FOUND, true))
-);
+// routes.all("*", (req, res, next) =>
+//   next(new APIError("Not Found!", HTTPStatus.NOT_FOUND, true))
+// );
 
 //routes.use(logErrorService);
 

@@ -2,75 +2,66 @@ import { Constants } from "./config/Constants";
 import mongoose from "mongoose";
 
 function mongoConnection() {
-  function connect() {
-    let timeout = 30 * 1000;
-    let options = {
-      connectTimeoutMS: timeout,
-      keepAlive: timeout,
-      reconnectTries: Number.MAX_VALUE,
-      reconnectInterval: 500,
-      useCreateIndex: true,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    };
+  const MONGO_URI = Constants.mongo.uri;
 
-    // Connect mongoose to the database
-    return mongoose.connect(Constants.mongo.uri, options, error => {
-      if (error) {
-        console.error(
-          "Failed to connect to mongo on startup - retrying in 5 sec",
-          error
-        );
-        if (
-          mongoose.connection.readyState != 1 &&
-          mongoose.connection.readyState != 2
-        ) {
-          setTimeout(connectionWithRetry, 5000);
-        }
+  const options = {
+    connectTimeoutMS: 30 * 1000,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  };
+
+  async function connectWithRetry() {
+    try {
+      await mongoose.connect(MONGO_URI, options);
+      console.info("MongoDB connected successfully");
+    } catch (error) {
+      console.error(
+        "Failed to connect to MongoDB on startup - retrying in 5 seconds",
+        error
+      );
+
+      if (mongoose.connection.readyState !== 1 && mongoose.connection.readyState !== 2) {
+        setTimeout(connectWithRetry, 5000);
       }
-    });
+    }
   }
 
-  connect();
+  // Start the initial connection attempt
+  connectWithRetry();
+
+  // Enable Mongoose debug mode
   mongoose.set("debug", true);
 
-  // Load models
-  //models(mongoose);
-
-  mongoose.connection.on("error", function(err) {
-    console.error("Mongoose connection: error - " + err);
+  // Connection event handlers
+  mongoose.connection.on("error", (err) => {
+    console.error("Mongoose connection error:", err);
   });
 
-  mongoose.connection.on("connected", function() {
+  mongoose.connection.on("connected", () => {
     console.info("Mongoose connection: connected");
   });
 
-  mongoose.connection.on("open", function() {
+  mongoose.connection.on("open", () => {
     console.info("Mongoose connection: open");
   });
 
-  mongoose.connection.on("reconnected", function() {
+  mongoose.connection.on("reconnected", () => {
     console.info("Mongoose connection: reconnected");
   });
-  mongoose.connection.on("reconnectFailed", function(err) {
-    console.error("Mongoose reconnect: error - " + err);
-    capture.error(err);
-  });
 
-  mongoose.connection.on("disconnected", function() {
+  mongoose.connection.on("disconnected", () => {
     console.warn("Mongoose connection: disconnected");
   });
 
-  process.on("SIGINT", function() {
-    mongoose.disconnect(function() {
-      process.exit(0);
-    });
+  mongoose.connection.on("reconnectFailed", (err) => {
+    console.error("Mongoose reconnect failed:", err);
+    // Optionally capture error if you have capture.error(err);
   });
 
-  process.on("SIGINT", function() {
-    mongoose.disconnect(function() {
-      process.exit(0);
-    });
+  // Handle graceful shutdown on SIGINT
+  process.on("SIGINT", async () => {
+    await mongoose.disconnect();
+    process.exit(0);
   });
 
   return mongoose;

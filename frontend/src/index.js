@@ -6,7 +6,7 @@ import { applyMiddleware, compose, createStore } from "redux";
 import reducers from "./store/reducers";
 import { persistStore } from "redux-persist";
 import { PersistGate } from "redux-persist/lib/integration/react";
-import thunk from "redux-thunk";
+import thunk from 'redux-thunk';
 import "./index.css";
 import App from "./App";
 import "bootstrap/dist/css/bootstrap.css";
@@ -15,9 +15,14 @@ import "./styles/global.scss";
 import "./styles/mixins.scss";
 import "./styles/variables.scss";
 import * as actions from "./store/actions/index";
+import { configureStore } from '@reduxjs/toolkit';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-const store = createStore(reducers, composeEnhancers(applyMiddleware(thunk)));
+const store = configureStore({
+  reducer: reducers,
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(thunk),
+});
+
 export const persistor = persistStore(store);
 setupInterceptors(store, persistor);
 const token = localStorage.getItem("token");

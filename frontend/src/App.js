@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import "./App.css";
-import { Redirect, Route, Switch, withRouter } from "react-router-dom";
+import { Navigate, Redirect, Route, Switch, withRouter } from "react-router-dom";
 import Auth from "./container/Auth";
 import Home from "./container/Dashboard";
 import Header from "./container/Header";
@@ -23,7 +23,7 @@ class App extends Component {
     let routes = (
       <Switch>
         <Route path="/auth" component={Auth} />
-        <Redirect to="/auth" />
+        <Navigate to="/auth" />
       </Switch>
     );
     if (this.props.isAuthenticated) {
